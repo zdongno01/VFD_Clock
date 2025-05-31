@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="range"],
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        input[type="button"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        input[type="button"]:hover {
+            background-color: #45a049;
+        }
+    </style>
+    <script>
+        var xhttp = new XMLHttpRequest();
+
+        function hostname() {
+            var value = document.getElementById('name').value;
+            xhttp.open('GET', '/nm?name=' + value, true);
+            xhttp.send();
+        }
+
+        function change_br() {
+            var value = document.getElementById('brig').value;
+            xhttp.open('GET', '/br?brig=' + value, true);
+            xhttp.send();
+        }
+
+        function vfd_inverse() {
+            var value = document.getElementById('vfd_inv').value;
+            xhttp.open('GET', '/inv?vfd_inv=' + value, true);
+            xhttp.send();
+        }
+
+        function change_lu() {
+            var value = document.getElementById('lum').value;
+            xhttp.open('GET', '/lu?lum=' + value, true);
+            xhttp.send();
+        }
+
+        function ipadd_onff() {
+            var value = document.getElementById('ip_off').value;
+            xhttp.open('GET', '/ip?ip_off=' + value, true);
+            xhttp.send();
+        }
+
+        function tm_Toggle() {
+            var value = document.getElementById('tmto').value;
+            xhttp.open('GET', '/tm?tmto=' + value, true);
+            xhttp.send();
+        }
+
+        function tm_Tick() {
+            var value = document.getElementById('Tick').value;
+            xhttp.open('GET', '/ti?Tick=' + value, true);
+            xhttp.send();
+        }
+
+        function tm_Tock() {
+            var value = document.getElementById('Tock').value;
+            xhttp.open('GET', '/to?Tock=' + value, true);
+            xhttp.send();
+        }
+
+        function tm_ttfa() {
+            var value = document.getElementById('ttfa').value;
+            xhttp.open('GET', '/tfa?ttfa=' + value, true);
+            xhttp.send();
+        }
+
+        function tm_ttfb() {
+            var value = document.getElementById('ttfb').value;
+            xhttp.open('GET', '/tfb?ttfb=' + value, true);
+            xhttp.send();
+        }
+
+        function wifi_ssid1() {
+            var value = document.getElementById('wiss1').value;
+            xhttp.open('GET', '/wi1?wiss1=' + value, true);
+            xhttp.send();
+        }
+
+        function wifi_pass1() {
+            var value = document.getElementById('wpa1').value;
+            xhttp.open('GET', '/wp1?wpa1=' + value, true);
+            xhttp.send();
+        }
+
+        function wifi_ssid2() {
+            var value = document.getElementById('wiss2').value;
+            xhttp.open('GET', '/wi2?wiss2=' + value, true);
+            xhttp.send();
+        }
+
+        function wifi_pass2() {
+            var value = document.getElementById('wpa2').value;
+            xhttp.open('GET', '/wp2?wpa2=' + value, true);
+            xhttp.send();
+        }
+
+        function wifi_ssid3() {
+            var value = document.getElementById('wiss3').value;
+            xhttp.open('GET', '/wi3?wiss3=' + value, true);
+            xhttp.send();
+        }
+
+        function wifi_pass3() {
+            var value = document.getElementById('wpa3').value;
+            xhttp.open('GET', '/wp3?wpa3=' + value, true);
+            xhttp.send();
+        }
+
+        function restart() {
+            xhttp.open('GET', '/re', false);
+            xhttp.send();
+        }
+    </script>
+</head>
+
+<body>
+    <h1>时钟设置</h1>
+    <div class="form-group">
+        <label>时钟名称</label>
+        <input type='text' id='name' value='VfdTm' onchange='hostname()'>
+    </div>
+    <div class="form-group">
+        <label>屏幕亮度</label>
+        <input id='brig' type='range' min='1' max='10' value='3' oninput='change_br()'>
+    </div>
+    <div class="form-group">
+        <label>显示倒转</label>
+        <select id='vfd_inv' value='1' onchange='vfd_inverse()'>
+            <option value='0'>关</option>
+            <option value='1' selected>开</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>开机样式</label>
+        <select id='lum' value='2' onchange='change_lu()'>
+            <option value='0' selected>无</option>
+            <option value='1'>从左滑入</option>
+            <option value='2'>从右滑入</option>
+            <option value='3'>从上滑入</option>
+            <option value='4'>从下滑入</option>
+            <option value='5'>溶解</option>
+            <option value='6'>合并</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>时间样式</label>
+        <select id='tmto' value='3' onchange='tm_Toggle()'>
+            <option value='0' selected>无</option>
+            <option value='1'>从左滑入</option>
+            <option value='2'>从右滑入</option>
+            <option value='3'>从上滑入</option>
+            <option value='4'>从下滑入</option>
+            <option value='5'>溶解</option>
+            <option value='6'>合并</option>
+        </select>
+    </div>
+    <div class="form-group" style="display: flex; gap: 10px;">
+        <div style="flex: 1;">
+            <label>时间间隔</label>
+            <select id='Tick' value='4' onchange='tm_Tick()'>
+                <option value='4' selected>无</option>
+                <option value='5'> : </option>
+                <option value='6'> ▲ </option>
+                <option value='7'> ▼ </option>
+                <option value='8'> O </option>
+                <option value='9'> || </option>
+            </select>
+            <select id='Tock' value='5' onchange='tm_Tock()'>
+                <option value='4'>无</option>
+                <option value='5' selected> : </option>
+                <option value='6'> ▲ </option>
+                <option value='7'> ▼ </option>
+                <option value='8'> O </option>
+                <option value='9'> || </option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label>IP显示开关</label>
+        <select id='ip_off' value='1' onchange='ipadd_onff()'>
+            <option value='0'>关</option>
+            <option value='1' selected>开</option>
+        </select>
+    </div>
+    <div class="form-group" style="display: flex; gap: 10px;">
+        <div style="flex: 1;">
+            <label>时间字体</label>
+            <select id='ttfa' value='6' onchange='tm_ttfa()'>
+                <option value='0' selected>FF0000</option>
+                <option value='1'>Plop</option>
+                <option value='2'>Plop_f</option>
+                <option value='3'>BMBIA</option>
+                <option value='4'>BMBIA_f</option>
+                <option value='5'>Pixel</option>
+                <option value='6'>bold</option>
+            </select>
+            <select id='ttfb' value='6' onchange='tm_ttfb()'>
+                <option value='0' selected>FF0000</option>
+                <option value='1'>Plop</option>
+                <option value='2'>Plop_f</option>
+                <option value='3'>BMBIA</option>
+                <option value='4'>BMBIA_f</option>
+                <option value='5'>Pixel</option>
+                <option value='6'>bold</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group" style="display: flex; gap: 10px;">
+        <div style="flex: 1;">
+            <label>WIFI1</label>
+            <input type='text' id='wiss1' value='' onchange='wifi_ssid1()'>
+        </div>
+        <div style="flex: 1;">
+            <label>Pass1</label>
+            <input type='text' id='wpa1' value='' onchange='wifi_pass1()'>
+        </div>
+    </div>
+    <div class="form-group" style="display: flex; gap: 10px;">
+        <div style="flex: 1;">
+            <label>WIFI2</label>
+            <input type='text' id='wiss2' value='' onchange='wifi_ssid2()'>
+        </div>
+        <div style="flex: 1;">
+            <label>Pass2</label>
+            <input type='text' id='wpa2' value='' onchange='wifi_pass2()'>
+        </div>
+    </div>
+    <div class="form-group" style="display: flex; gap: 10px;">
+        <div style="flex: 1;">
+            <label>WIFI3</label>
+            <input type='text' id='wiss3' value='' onchange='wifi_ssid3()'>
+        </div>
+        <div style="flex: 1;">
+            <label>Pass3</label>
+            <input type='text' id='wpa3' value='' onchange='wifi_pass3()'>
+        </div>
+    </div>
+    <input type='button' value='重启ESP' onclick='restart()'>
+</body>
+
+</html>

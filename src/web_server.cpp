@@ -31,147 +31,79 @@ String ws_wifi_pass2;  // WIFI_PASS2
 String ws_wifi_ssid3;  // WIFI_SSID3
 String ws_wifi_pass3;  // WIFI_PASS3
 
-// void set_brig();
+// html script 函数生成器
+String generateFunction(String funcName, String elementId, String endpoint, String paramName)
+{
+    return "        function " + funcName + "() {\n" +
+           "            var value = document.getElementById('" + elementId + "').value;\n" +
+           "            xhttp.open('GET', '/" + endpoint + "?" + paramName + "=' + value, true);\n" +
+           "            xhttp.send();\n" +
+           "        }\n";
+}
 
-String function(String ht, String id, String onc)
+// 通用函数，用于生成表单组
+String generateFormGroup(String labelText, String inputHtml)
 {
-    return "function " + onc + "() {\
-         var value = document.getElementById('" +
-           id + "').value;\
-         xhttp.open('GET', '/" +
-           ht + "?" + id + "=' + value, true);\
-         xhttp.send() }";
+    return "    <div class=\"form-group\">\n <label>" + labelText + "</label>\n" +
+           inputHtml +
+           "    </div>\n";
 }
-String input_text(String tx, String id, String onc, String vi)
-{
-    return "<body> " + tx + "<input type='text' id='" + id + "' value='" + vi + "' onchange='" + onc + "()'></body>";
-}
-String option_Toggle(String tx, String id, String onc, int vi) // String vi)
-{
-    String HTML, Z, R, L, D, U, A, O;
-    if (vi == 1)
-        R = "selected";
-    else if (vi == 2)
-        L = "selected";
-    else if (vi == 3)
-        D = "selected";
-    else if (vi == 4)
-        U = "selected";
-    else if (vi == 5)
-        A = "selected";
-    else if (vi == 6)
-        O = "selected";
-    else
-        vi = 0;
-    Z = "selected";
 
-    return "<P><body> " + tx + " <select id='" + id + "' value='" + vi + "' onchange='" + onc + "()'>\
-        <option value='0'" +
-           Z + ">无</option>\
-        <option value='1'" +
-           R + ">从左滑入</option>\
-        <option value='2'" +
-           L + ">从右滑入</option>\
-        <option value='3'" +
-           D + ">从上滑入</option>\
-        <option value='4'" +
-           U + ">从下滑入</option>\
-        <option value='5'" +
-           A + ">溶解</option>\
-        <option value='6'" +
-           O + ">合并</option>\
-        </select></body>";
-}
-String Ti_Tock(String tx, String id, String onc, int vi) // 时间间隔样式
+// 通用函数，用于生成选择框
+String generateSelect(String id, String value, String onChange, String options)
 {
-    String HTML, t1, t2, t3, t4, t5, t0;
-    if (vi == 5)
-        t1 = "selected";
-    else if (vi == 6)
-        t2 = "selected";
-    else if (vi == 7)
-        t3 = "selected";
-    else if (vi == 8)
-        t4 = "selected";
-    else if (vi == 9)
-        t5 = "selected";
-    else
-        vi = 4;
-    t0 = "selected";
+    return "        <select id='" + id + "' value='" + value + "' onchange='" + onChange + "()'>\n" +
+           options +
+           "        </select>\n";
+}
 
-    return "<P><body> " + tx + " <select id='" + id + "' value='" + vi + "' onchange='" + onc + "()'>\
-        <option value='4'" +
-           t0 + ">无</option>\
-        <option value='5'" +
-           t1 + "> : </option>\
-        <option value='6'" +
-           t2 + "> ▲ </option>\
-        <option value='7'" +
-           t3 + "> ▼ </option>\
-        <option value='8'" +
-           t4 + "> O </option>\
-        <option value='9'" +
-           t5 + "> || </option>\
-        </select></body>";
-}
-String tm_ttf(String tx, String id, String onc, int vi) // 字体
+// 生成选择框选项
+String generateToggleOptions(int selectedValue)
 {
-    String HTML, tf0, tf1, tf2, tf3, tf4, tf5, tf6;
-    if (vi == 1)
-        tf1 = "selected";
-    else if (vi == 2)
-        tf2 = "selected";
-    else if (vi == 3)
-        tf3 = "selected";
-    else if (vi == 4)
-        tf4 = "selected";
-    else if (vi == 5)
-        tf5 = "selected";
-    else if (vi == 6)
-        tf6 = "selected";
-    else
-        vi = 0;
-    tf0 = "selected";
-
-    return "<P><body> " + tx + " <select id='" + id + "' value='" + vi + "' onchange='" + onc + "()'>\
-        <option value='0'" +
-           tf0 + ">FF0000</option>\
-        <option value='1'" +
-           tf1 + ">Plop</option>\
-        <option value='2'" +
-           tf2 + ">Plop_f</option>\
-        <option value='3'" +
-           tf3 + ">BMBIA</option>\
-        <option value='4'" +
-           tf4 + ">BMBIA_f</option>\
-        <option value='5'" +
-           tf5 + ">Pixel</option>\
-        <option value='6'" +
-           tf6 + ">bold</option>\
-        </select></body>";
-}
-String off_on(String tx, String id, String onc, bool vi) // 显示开关
-{
-    String HTML, F, R;
-    if (vi)
+    String options[6] = {"无", "从左滑入", "从右滑入", "从上滑入", "从下滑入", "溶解"};
+    String result = "";
+    for (int i = 0; i < 6; i++)
     {
-        R = "selected";
-        F = "";
+        result += "            <option value='" + String(i) + "'" + (i == selectedValue ? " selected" : "") + ">" + options[i] + "</option>\n";
+    }
+    return result;
+}
+
+String generateTickTockOptions(int selectedValue)
+{
+    String options[6] = {"无", " : ", " ▲ ", " ▼ ", " O ", " || "};
+    String result = "";
+    for (int i = 0; i < 6; i++)
+    {
+        result += "            <option value='" + String(i + 4) + "'" + (i + 4 == selectedValue ? " selected" : "") + ">" + options[i] + "</option>\n";
+    }
+    return result;
+}
+
+String generateFontOptions(int selectedValue)
+{
+    String options[7] = {"FF0000", "Plop", "Plop_f", "BMBIA", "BMBIA_f", "Pixel", "bold"};
+    String result = "";
+    for (int i = 0; i < 7; i++)
+    {
+        result += "            <option value='" + String(i) + "'" + (i == selectedValue ? " selected" : "") + ">" + options[i] + "</option>\n";
+    }
+    return result;
+}
+
+String generateOnOffOptions(bool isOn)
+{
+    if (isOn)
+    {
+        return "            <option value='0'>关</option>\n <option value='1' selected>开</option>\n";
     }
     else
     {
-        F = "selected";
-        R = "";
-    }
-
-    return "<P><body> " + tx + " <select id='" + id + "' value='" + vi + "' onchange='" + onc + "()'>\
-        <option value='0'" +
-           F + ">关</option>\
-        <option value='1'" +
-           R + ">开</option>\
-        </select></body>";
+        return "            <option value='0' selected>关</option>\n <option value='1'>开</option>\n";
+    };
 }
 
+// 在 handelRoot 函数中使用通用函数生成 HTML
 void handelRoot() // WEB页面初始化
 {
 
@@ -202,49 +134,120 @@ void handelRoot() // WEB页面初始化
     Serial.println(ws_Tick);
     Serial.println(ws_Tock);
 
-    String HTML = "<!--DOCTPYE html--><html><head><meta charset='utf-8'><script>\
-        var xhttp = new XMLHttpRequest();" +
-                  function("nm", "name", "hostname") +
-                  function("br", "brig", "change_br") +
-                  function("inv", "vfd_inv", "vfd_inverse") +
-                  function("lu", "lum", "change_lu") +
-                  function("ip", "ip_off", "ipadd_onff") +
-                  function("tm", "tmto", "tm_Toggle") +
-                  function("ti", "Tick", "tm_Tick") +
-                  function("to", "Tock", "tm_Tock") +
-                  function("tfa", "ttfa", "tm_ttfa") +
-                  function("tfb", "ttfb", "tm_ttfb") +
-                  function("wi1", "wiss1", "wifi_ssid1") +
-                  function("wp1", "wpa1", "wifi_pass1") +
-                  function("wi2", "wiss2", "wifi_ssid2") +
-                  function("wp2", "wpa2", "wifi_pass2") +
-                  function("wi3", "wiss3", "wifi_ssid3") +
-                  function("wp3", "wpa3", "wifi_pass3") +
-                  "function restart() {xhttp.open('GET', '/re', false); xhttp.send() }" +
-                  "</script></head><P>" +
-                  input_text("时钟名称 ", "name", "hostname", ws_hostname) +
-                  "<P><body> 屏幕亮度 <input id='brig' type='range' min='1' max='10' value='" +
-                  ss_brig + "' oninput='change_br()' />\
-    <script type='text/javascript'>\
-    </script></body>" +
-                  off_on("显示倒转", "vfd_inv", "vfd_inverse", ws_vfd_inverse) +
-                  option_Toggle("开机样式", "lum", "change_lu", ws_no_Toggle) +
-                  option_Toggle("时间样式", "tmto", "tm_Toggle", ws_tm_Toggle) +
-                  Ti_Tock("时间间隔1", "Tick", "tm_Tick", ws_Tick) +
-                  Ti_Tock("时间间隔2", "Tock", "tm_Tock", ws_Tock) +
-                  off_on("IP显示开关", "ip_off", "ipadd_onff", ws_ipadd_onff) +
-                  tm_ttf("时间字体1", "ttfa", "tm_ttfa", ws_ttfa) +
-                  tm_ttf("时间字体2", "ttfb", "tm_ttfb", ws_ttfb) + "<P>" +
-                  input_text("WIFI1: ", "wiss1", "wifi_ssid1", ws_wifi_ssid1) +
-                  input_text("密码: ", "wpa1", "wifi_pass1", ws_wifi_pass1) + "<P>" +
-                  input_text("WIFI2: ", "wiss2", "wifi_ssid2", ws_wifi_ssid2) +
-                  input_text("密码: ", "wpa2", "wifi_pass2", ws_wifi_pass2) + "<P>" +
-                  input_text("WIFI3: ", "wiss3", "wifi_ssid3", ws_wifi_ssid3) +
-                  input_text("密码: ", "wpa3", "wifi_pass3", ws_wifi_pass3) + "<P>" +
-                  "<P><input type='button' value='重启ESP' onclick='location.href=(\"re\")'"
-                  "</html>";
+    String html = "<!DOCTYPE html>\n";
+    html += "<html>\n";
+    html += "<head>\n";
+    html += "    <meta charset='utf-8'>\n";
+    html += "    <style>\n";
+    html += "        body {\n";
+    html += "            font-family: Arial, sans-serif;\n";
+    html += "            max-width: 800px;\n";
+    html += "            margin: 20px auto;\n";
+    html += "            padding: 20px;\n";
+    html += "            background-color: #f4f4f4;\n";
+    html += "        }\n";
+    html += "        .form-group {\n";
+    html += "            margin-bottom: 15px;\n";
+    html += "        }\n";
+    html += "        label {\n";
+    html += "            display: block;\n";
+    html += "            margin-bottom: 5px;\n";
+    html += "            font-weight: bold;\n";
+    html += "        }\n";
+    html += "        input[type=\"text\"],\n";
+    html += "        input[type=\"range\"],\n";
+    html += "        select {\n";
+    html += "            width: 100%;\n";
+    html += "            padding: 8px;\n";
+    html += "            border: 1px solid #ccc;\n";
+    html += "            border-radius: 4px;\n";
+    html += "            box-sizing: border-box;\n";
+    html += "        }\n";
+    html += "        input[type=\"button\"] {\n";
+    html += "            background-color: #4CAF50;\n";
+    html += "            color: white;\n";
+    html += "            padding: 10px 20px;\n";
+    html += "            border: none;\n";
+    html += "            border-radius: 4px;\n";
+    html += "            cursor: pointer;\n";
+    html += "        }\n";
+    html += "        input[type=\"button\"]:hover {\n";
+    html += "            background-color: #45a049;\n";
+    html += "        }\n";
+    html += "    </style>\n";
+    html += "    <script>\n";
+    html += "        var xhttp = new XMLHttpRequest();\n";
 
-    server.send(200, "text/html", HTML);
+    // 生成各个script函数
+    html += generateFunction("hostname", "name", "nm", "name");
+    html += generateFunction("change_br", "brig", "br", "brig");
+    html += generateFunction("vfd_inverse", "vfd_inv", "inv", "vfd_inv");
+    html += generateFunction("change_lu", "lum", "lu", "lum");
+    html += generateFunction("ipadd_onff", "ip_off", "ip", "ip_off");
+    html += generateFunction("tm_Toggle", "tmto", "tm", "tmto");
+    html += generateFunction("tm_Tick", "Tick", "ti", "Tick");
+    html += generateFunction("tm_Tock", "Tock", "to", "Tock");
+    html += generateFunction("tm_ttfa", "ttfa", "tfa", "ttfa");
+    html += generateFunction("tm_ttfb", "ttfb", "tfb", "ttfb");
+    html += generateFunction("wifi_ssid1", "wiss1", "wi1", "wiss1");
+    html += generateFunction("wifi_pass1", "wpa1", "wp1", "wpa1");
+    html += generateFunction("wifi_ssid2", "wiss2", "wi2", "wiss2");
+    html += generateFunction("wifi_pass2", "wpa2", "wp2", "wpa2");
+    html += generateFunction("wifi_ssid3", "wiss3", "wi3", "wiss3");
+    html += generateFunction("wifi_pass3", "wpa3", "wp3", "wpa3");
+
+    // 重启script
+    html += "        function restart() {\n";
+    html += "            xhttp.open('GET', '/re', false);\n";
+    html += "            xhttp.send();\n";
+    html += "        }\n";
+    html += "    </script>\n";
+    html += "</head>\n";
+    html += "<body>\n";
+    html += "    <h1>时钟设置</h1>\n";
+    html += generateFormGroup("时钟名称", "        <input type='text' id='name' value='" + ws_hostname + "' onchange='hostname()'>\n");
+    html += generateFormGroup("屏幕亮度", "        <input id='brig' type='range' min='1' max='10' value='" + ss_brig + "' oninput='change_br()'>\n");
+    html += generateFormGroup("显示倒转", generateSelect("vfd_inv", String(ws_vfd_inverse), "vfd_inverse", generateOnOffOptions(ws_vfd_inverse)));
+    html += generateFormGroup("开机样式", generateSelect("lum", String(ws_no_Toggle), "change_lu", generateToggleOptions(ws_no_Toggle)));
+    html += generateFormGroup("时间样式", generateSelect("tmto", String(ws_tm_Toggle), "tm_Toggle", generateToggleOptions(ws_tm_Toggle)));
+    html += "    <div class=\"form-group\" style=\"display: flex; gap: 10px;\">\n";
+    html += "        <div style=\"flex: 1;\">\n";
+    html += "            <label>时间间隔</label>\n";
+    html += generateSelect("Tick", String(ws_Tick), "tm_Tick", generateTickTockOptions(ws_Tick));
+    html += generateSelect("Tock", String(ws_Tock), "tm_Tock", generateTickTockOptions(ws_Tock));
+    html += "        </div>\n";
+    html += "    </div>\n";
+    html += generateFormGroup("IP显示开关", generateSelect("ip_off", String(ws_ipadd_onff), "ipadd_onff", generateOnOffOptions(ws_ipadd_onff)));
+    html += "    <div class=\"form-group\" style=\"display: flex; gap: 10px;\">\n";
+    html += "        <div style=\"flex: 1;\">\n";
+    html += "            <label>时间字体</label>\n";
+    html += generateSelect("ttfa", String(ws_ttfa), "tm_ttfa", generateFontOptions(ws_ttfa));
+    html += generateSelect("ttfb", String(ws_ttfb), "tm_ttfb", generateFontOptions(ws_ttfb));
+    html += "        </div>\n";
+    html += "    </div>\n";
+    html += "    <div class=\"form-group\" style=\"display: flex; gap: 10px;\">\n";
+    html += "        <div style=\"flex: 1;\">\n";
+    html += generateFormGroup("WIFI1", "        <input type='text' id='wiss1' value='" + ws_wifi_ssid1 + "' onchange='wifi_ssid1()'>\n");
+    html += generateFormGroup("Pass1", "        <input type='text' id='wpa1' value='" + ws_wifi_pass1 + "' onchange='wifi_pass1()'>\n");
+    html += "        </div>\n";
+    html += "    </div>\n";
+    html += "    <div class=\"form-group\" style=\"display: flex; gap: 10px;\">\n";
+    html += "        <div style=\"flex: 1;\">\n";
+    html += generateFormGroup("WIFI2", "        <input type='text' id='wiss2' value='" + ws_wifi_ssid2 + "' onchange='wifi_ssid2()'>\n");
+    html += generateFormGroup("Pass2", "        <input type='text' id='wpa2' value='" + ws_wifi_pass2 + "' onchange='wifi_pass2()'>\n");
+    html += "        </div>\n";
+    html += "    </div>\n";
+    html += "    <div class=\"form-group\" style=\"display: flex; gap: 10px;\">\n";
+    html += "        <div style=\"flex: 1;\">\n";
+    html += generateFormGroup("WIFI3", "        <input type='text' id='wiss3' value='" + ws_wifi_ssid3 + "' onchange='wifi_ssid3()'>\n");
+    html += generateFormGroup("Pass3", "        <input type='text' id='wpa3' value='" + ws_wifi_pass3 + "' onchange='wifi_pass3()'>\n");
+    html += "        </div>\n";
+    html += "    </div>\n";
+    html += "    <input type='button' value='重启ESP' onclick='restart()'>\n";
+    html += "</body>\n";
+    html += "</html>";
+
+    server.send(200, "text/html", html);
     prefs.end();
 }
 //   + "<P><input type='button' value='重启ESP' onchange='restart()'>"
@@ -255,17 +258,6 @@ void restart() // ESP重启
     Serial.println("ESP.restart");
     delay(500);
     ESP.restart();
-}
-void hostname() // 修改时钟名称
-{
-    ws_hostname = server.arg("name");
-
-    prefs.begin("VFD_Config", false);
-    prefs.putString("hostname", ws_hostname);
-    prefs.end();
-
-    String HTML = "<!--DOCTPYE html--><html></html>";
-    server.send(200, "text/html", HTML);
 }
 void change_br() // 修改屏幕亮度
 {
@@ -280,174 +272,130 @@ void change_br() // 修改屏幕亮度
     String HTML = "<!--DOCTPYE html--><html></html>";
     server.send(200, "text/html", HTML);
 }
+
+// 通用函数，用于处理参数更新和保存
+template <typename T>
+void handleParameterUpdate(const String &argName, T &globalVar, const char *prefKey, T (*converter)(const String &))
+{
+    String state = server.arg(argName);
+    globalVar = converter(state);
+
+    prefs.begin("VFD_Config", false);
+    // 由于 is_same_v 可能在某些编译器环境下不可用，使用 std::is_same 替代
+    if constexpr (std::is_same<T, String>::value)
+    {
+        prefs.putString(prefKey, globalVar);
+    }
+    else if constexpr (std::is_same<T, bool>::value)
+    {
+        prefs.putBool(prefKey, globalVar);
+    }
+    else if constexpr (std::is_same<T, int>::value)
+    {
+        prefs.putInt(prefKey, globalVar);
+    }
+    else if constexpr (std::is_same<T, unsigned char>::value)
+    {
+        prefs.putUChar(prefKey, globalVar);
+    }
+    prefs.end();
+
+    String HTML = "<!--DOCTPYE html--><html></html>";
+    server.send(200, "text/html", HTML);
+}
+
+// 转换字符串为布尔值
+bool stringToBool(const String &str)
+{
+    return str == "1";
+}
+
+// 转换字符串为整数
+int stringToInt(const String &str)
+{
+    return atoi(str.c_str());
+}
+
+void hostname() // 修改时钟名称
+{
+    handleParameterUpdate<String>("name", ws_hostname, "hostname", [](const String &s)
+                                  { return s; });
+}
+
 void vfd_inverse() // 显示倒转
 {
-    // bool ipadd_onff = false;
-    String s_vfd_inverse = server.arg("vfd_inv");
-    if (s_vfd_inverse == "1")
-        ws_vfd_inverse = true;
-    else
-        ws_vfd_inverse = false;
-
-    prefs.begin("VFD_Config", false);
-    prefs.putBool("vfd_inv", ws_vfd_inverse);
-    prefs.end();
-
-    String HTML = "<!--DOCTPYE html--><html></html>";
-    server.send(200, "text/html", HTML);
+    handleParameterUpdate<bool>("vfd_inv", ws_vfd_inverse, "vfd_inv", stringToBool);
 }
+
 void change_lu() // 修改开机样式
 {
-    String state = server.arg("lum");
-    ws_no_Toggle = atoi(state.c_str());
-
-    prefs.begin("VFD_Config", false);
-    prefs.putInt("no_Toggle", ws_no_Toggle);
-    prefs.end();
-
-    String HTML = "<!--DOCTPYE html--><html></html>";
-    server.send(200, "text/html", HTML);
+    handleParameterUpdate<int>("lum", ws_no_Toggle, "no_Toggle", stringToInt);
 }
+
 void ipadd_onff() // 开机IP地址显示开关
 {
-    // bool ipadd_onff = false;
-    String s_ipadd_onff = server.arg("ip_off");
-    if (s_ipadd_onff == "1")
-        ws_ipadd_onff = true;
-    else
-        ws_ipadd_onff = false;
-
-    prefs.begin("VFD_Config", false);
-    prefs.putBool("ipadd_onff", ws_ipadd_onff);
-    prefs.end();
-
-    String HTML = "<!--DOCTPYE html--><html></html>";
-    server.send(200, "text/html", HTML);
+    handleParameterUpdate<bool>("ip_off", ws_ipadd_onff, "ipadd_onff", stringToBool);
 }
+
 void tm_Toggle() // 时间切换样式
 {
-
-    String state = server.arg("tmto");
-    ws_tm_Toggle = atoi(state.c_str());
-
-    prefs.begin("VFD_Config", false);
-    prefs.putInt("tm_Toggle", ws_tm_Toggle);
-    prefs.end();
-
-    String HTML = "<!--DOCTPYE html--><html></html>";
-    server.send(200, "text/html", HTML);
+    handleParameterUpdate<int>("tmto", ws_tm_Toggle, "tm_Toggle", stringToInt);
 }
+
 void tm_Tick() // 时间间隔
 {
-    String state = server.arg("Tick");
-    ws_Tick = atoi(state.c_str());
-
-    prefs.begin("VFD_Config", false);
-    prefs.putInt("Tick", ws_Tick);
-    prefs.end();
-
-    String HTML = "<!--DOCTPYE html--><html></html>";
-    server.send(200, "text/html", HTML);
+    handleParameterUpdate<int>("Tick", ws_Tick, "Tick", stringToInt);
 }
 
 void tm_Tock() // 时间间隔
 {
-    String state = server.arg("Tock");
-    ws_Tock = atoi(state.c_str());
-
-    prefs.begin("VFD_Config", false);
-    prefs.putInt("Tock", ws_Tock);
-    prefs.end();
-
-    String HTML = "<!--DOCTPYE html--><html></html>";
-    server.send(200, "text/html", HTML);
+    handleParameterUpdate<int>("Tock", ws_Tock, "Tock", stringToInt);
 }
+
 void tm_ttfa() // 时间字体A
 {
-    String state = server.arg("ttfa");
-    ws_ttfa = atoi(state.c_str());
-
-    prefs.begin("VFD_Config", false);
-    prefs.putInt("ttfa", ws_ttfa);
-    prefs.end();
-
-    String HTML = "<!--DOCTPYE html--><html></html>";
-    server.send(200, "text/html", HTML);
+    handleParameterUpdate<int>("ttfa", ws_ttfa, "ttfa", stringToInt);
 }
+
 void tm_ttfb() // 时间字体B
 {
-    String state = server.arg("ttfb");
-    ws_ttfb = atoi(state.c_str());
-
-    prefs.begin("VFD_Config", false);
-    prefs.putInt("ttfb", ws_ttfb);
-    prefs.end();
-
-    String HTML = "<!--DOCTPYE html--><html></html>";
-    server.send(200, "text/html", HTML);
+    handleParameterUpdate<int>("ttfb", ws_ttfb, "ttfb", stringToInt);
 }
 
 void wifi_ssid1() // wifi_ssid1
 {
-    ws_wifi_ssid1 = server.arg("wiss1");
-
-    prefs.begin("VFD_Config", false);
-    prefs.putString("wifi_ssid1", ws_wifi_ssid1);
-    prefs.end();
-
-    String HTML = "<!--DOCTPYE html--><html></html>";
-    server.send(200, "text/html", HTML);
+    handleParameterUpdate<String>("wiss1", ws_wifi_ssid1, "wifi_ssid1", [](const String &s)
+                                  { return s; });
 }
+
 void wifi_pass1() // wifi_passwd1
 {
-    ws_wifi_pass1 = server.arg("wpa1");
-
-    prefs.begin("VFD_Config", false);
-    prefs.putString("wifi_pass1", ws_wifi_pass1);
-    prefs.end();
-
-    String HTML = "<!--DOCTPYE html--><html></html>";
-    server.send(200, "text/html", HTML);
+    handleParameterUpdate<String>("wpa1", ws_wifi_pass1, "wifi_pass1", [](const String &s)
+                                  { return s; });
 }
+
 void wifi_ssid2() // wifi_ssid2
 {
-    ws_wifi_ssid2 = server.arg("wiss2");
-
-    prefs.begin("VFD_Config", false);
-    prefs.putString("wifi_ssid2", ws_wifi_ssid2);
-    prefs.end();
-    String HTML = "<!--DOCTPYE html--><html></html>";
-    server.send(200, "text/html", HTML);
+    handleParameterUpdate<String>("wiss2", ws_wifi_ssid2, "wifi_ssid2", [](const String &s)
+                                  { return s; });
 }
+
 void wifi_pass2() // wifi_passwd2
 {
-    ws_wifi_pass2 = server.arg("wpa2");
-
-    prefs.begin("VFD_Config", false);
-    prefs.putString("wifi_pass2", ws_wifi_pass2);
-    prefs.end();
-    String HTML = "<!--DOCTPYE html--><html></html>";
-    server.send(200, "text/html", HTML);
+    handleParameterUpdate<String>("wpa2", ws_wifi_pass2, "wifi_pass2", [](const String &s)
+                                  { return s; });
 }
+
 void wifi_ssid3() // wifi_ssid3
 {
-    ws_wifi_ssid3 = server.arg("wiss3");
-
-    prefs.begin("VFD_Config", false);
-    prefs.putString("wifi_ssid3", ws_wifi_ssid3);
-    prefs.end();
-    String HTML = "<!--DOCTPYE html--><html></html>";
-    server.send(200, "text/html", HTML);
+    handleParameterUpdate<String>("wiss3", ws_wifi_ssid3, "wifi_ssid3", [](const String &s)
+                                  { return s; });
 }
+
 void wifi_pass3() // wifi_passwd3
 {
-    ws_wifi_pass3 = server.arg("wpa3");
-
-    prefs.begin("VFD_Config", false);
-    prefs.putString("wifi_pass3", ws_wifi_pass3);
-    prefs.end();
-    String HTML = "<!--DOCTPYE html--><html></html>";
-    server.send(200, "text/html", HTML);
+    handleParameterUpdate<String>("wpa3", ws_wifi_pass3, "wifi_pass3", [](const String &s)
+                                  { return s; });
 }
 void WEB_server_begin()
 {

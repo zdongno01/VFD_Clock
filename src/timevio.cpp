@@ -146,8 +146,8 @@ void Reset_time(char *Toggle)
 
 void adjust_DS3231M()
 {
-    struct tm timeinfo;
-    if (!getLocalTime(&timeinfo))
+    struct tm timeinfo; 
+    if (!getLocalTime(&timeinfo))   
     {
         return;
     }

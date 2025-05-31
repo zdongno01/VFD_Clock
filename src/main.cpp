@@ -2,6 +2,7 @@
 #include <wifi.h>
 #include <TTF.h>
 #include <Wire.h>
+#include "timer_interrupt.h"
 
 // 存取配置数据
 #include <esp_partition.h>
@@ -39,14 +40,18 @@ char output_buffer[SPRINTF_BUFFER_SIZE]; ///< Temporary buffer for sprintf()
 int refresh = 100;                       // 刷新间隔  X ms
 // int separate;
 bool wifi_ap = false; // wifi_ap 模式: 真”（TRUE）、“假”（FALSE）
-char *toogle[] =
-    {const_cast<char *>("Z"),
-     const_cast<char *>("R"),
-     const_cast<char *>("L"),
-     const_cast<char *>("D"),
-     const_cast<char *>("U"),
-     const_cast<char *>("A"),
-     const_cast<char *>("O")};
+// 提取重复的字符串常量
+const char* TOGGLE_VALUES[] = {"Z", "R", "L", "D", "U", "O"};
+// 修改 toogle 数组的定义
+char *toogle[] = {
+    const_cast<char*>(TOGGLE_VALUES[0]),
+    const_cast<char*>(TOGGLE_VALUES[1]),
+    const_cast<char*>(TOGGLE_VALUES[2]),
+    const_cast<char*>(TOGGLE_VALUES[3]),
+    const_cast<char*>(TOGGLE_VALUES[4]),
+    const_cast<char*>(TOGGLE_VALUES[5]),
+    const_cast<char*>(TOGGLE_VALUES[6])
+};
 
 //  设 置
 unsigned char brig = 0x55; // 屏幕亮度
@@ -77,14 +82,14 @@ unsigned seed; // Random generator seed
 
 WiFiUDP ntpUDP;
 
-void asc_to_VFDww(unsigned char x, const char *s)
+void asc_to_VFDww(unsigned char x, const char *s) // 字符串转VFD
 {
     char cs[1];
     strncpy(cs, s, 1);
     int iss = cs[0] - 55; 
     VFD_WriteWater(x, FF0000[iss]);
 }
-void while_Wifi(const char *ssid, const char *pass, int wi)
+void while_Wifi(const char *ssid, const char *pass, int wi) // 连接WIFI
 {
     if (ssid != "")
         WiFi.begin(ssid, pass);
@@ -120,7 +125,7 @@ void while_Wifi(const char *ssid, const char *pass, int wi)
 
     return;
 }
-void while_NTP()
+void while_NTP() // 同步NTP时间
 {
 
     // ESP时钟未准备好, 使用DS3231时钟
@@ -164,15 +169,18 @@ void while_NTP()
 #endif
     // };
 
-    pinMode(13, OUTPUT);   // 开启引脚输出模式      LED D5
-    digitalWrite(13, LOW); // HIGH输出高电平，LOW就是低电平
 #ifdef DS3231
-    adjust_DS3231M(); // 同步系统时间到M3231M
+        adjust_DS3231M(); // 同步系统时间到M3231M
 #endif
+
+stopTimerInterrupt();    // 关闭定时器中断
+
     return;
 }
-void WiFi_softAP()
+void WiFi_softAP()  // WiFi配置为AP模式
 {
+    recordAPSyncSuccess(true);  // 记录AP同步成功
+
     WiFi.mode(WIFI_AP);                                         // 配置为AP模式
     WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0)); // 设置AP热点IP和子网掩码
 
@@ -211,88 +219,83 @@ void WiFi_softAP()
     }
 }
 
-void test()
+// void test() // 测试
+// {
+//     VFD_TEST();     //屏幕功能测试
+    
+//     //切换加载自定义字符
+//     VFD_set_bright(0x01); 
+//     delay(1000);
+//     VFD_set_bright(brig); 
+//     for (size_t i = 0; i < 8; i++)
+//     {
+//         size_t is = i + 10;
+//         VFD_WriteWater(i, FF0000[is]);
+//     }
+//     VFD_updata(const_cast<char *>("Z"), false);
+//     delay(2000);
+
+//     //向右推入两个字符
+//     VFD_WriteWater(6, FF0000[8]);
+//     VFD_WriteWater(7, FF0000[9]);
+//     VFD_updata(0, 7, 2, const_cast<char *>("R"));
+//     delay(2000);
+
+//     //向左推入两个字符
+//     // VFD_WriteWater(0, FF0000[16]);
+//     // VFD_WriteWater(1, FF0000[17]);
+//     VFD_updata(0, 7, 2, const_cast<char *>("L"));
+//     delay(2000);
+
+//     //向上推入字符
+//     for (size_t i = 0; i < 8; i++)
+//         VFD_WriteWater(i, FF0000[i]);
+//     VFD_updata(const_cast<char *>("U"), false);
+//     delay(2000);
+
+//     //向下推入字符
+//     for (size_t i = 0; i < 8; i++)
+//     {
+//         size_t is = i + 10;
+//         VFD_WriteWater(i, FF0000[is]);
+//     }
+//     VFD_updata(const_cast<char *>("D"), false);
+//     delay(2000);
+
+//     //向右百叶窗
+//     for (size_t i = 0; i < 8; i++)
+//         VFD_WriteWater(i, FF0000[i]);
+//     VFD_updata(const_cast<char *>("R"), true);
+//     delay(2000);
+
+//     //向左百叶窗
+//     VFD_WriteWater(0, icon_data[0]);
+//     VFD_WriteWater(7, Plop_data[0]);
+//     for (size_t i = 1; i < 7; i++)
+//         VFD_WriteWater(i, icon_data[4]);
+//     VFD_updata(const_cast<char *>("L"), true);
+//     delay(2000);
+    
+//     //部分字符推入/推出
+//     for (size_t i = 1; i < 7; i++)
+//         VFD_WriteWater(i, icon_data[2]);
+//     VFD_updata(1, 6, 6, const_cast<char *>("R"));
+//     for (size_t i = 1; i < 7; i++)
+//         VFD_WriteWater(i, icon_data[4]);
+//     VFD_updata(1, 6, 6, const_cast<char *>("R"));
+//     delay(2000);
+    
+//     //全部推出
+//     VFD_WriteWater(7, icon_data[4]);
+//     VFD_updata(const_cast<char *>("L"), true);
+//     for (size_t i = 0; i < 8; i++)
+//         VFD_WriteWater(i, icon_data[4]);
+//     VFD_updata(const_cast<char *>("L"), false);
+//     delay(2000);
+// }
+
+void setup() // 初始化
 {
-    VFD_TEST();     //屏幕功能测试
-    
-    //切换加载自定义字符
-    VFD_set_bright(0x01); 
-    delay(1000);
-    VFD_set_bright(brig); 
-    for (size_t i = 0; i < 8; i++)
-    {
-        size_t is = i + 10;
-        VFD_WriteWater(i, FF0000[is]);
-    }
-    VFD_updata(const_cast<char *>("Z"), false);
-    delay(2000);
-
-    //向右推入两个字符
-    VFD_WriteWater(6, FF0000[8]);
-    VFD_WriteWater(7, FF0000[9]);
-    VFD_updata(0, 7, 2, const_cast<char *>("R"));
-    delay(2000);
-
-    //向左推入两个字符
-    // VFD_WriteWater(0, FF0000[16]);
-    // VFD_WriteWater(1, FF0000[17]);
-    VFD_updata(0, 7, 2, const_cast<char *>("L"));
-    delay(2000);
-
-    //向上推入字符
-    for (size_t i = 0; i < 8; i++)
-        VFD_WriteWater(i, FF0000[i]);
-    VFD_updata(const_cast<char *>("U"), false);
-    delay(2000);
-
-    //向下推入字符
-    for (size_t i = 0; i < 8; i++)
-    {
-        size_t is = i + 10;
-        VFD_WriteWater(i, FF0000[is]);
-    }
-    VFD_updata(const_cast<char *>("D"), false);
-    delay(2000);
-
-    //向右百叶窗
-    for (size_t i = 0; i < 8; i++)
-        VFD_WriteWater(i, FF0000[i]);
-    VFD_updata(const_cast<char *>("R"), true);
-    delay(2000);
-
-    //向左百叶窗
-    VFD_WriteWater(0, icon_data[0]);
-    VFD_WriteWater(7, Plop_data[0]);
-    for (size_t i = 1; i < 7; i++)
-        VFD_WriteWater(i, icon_data[4]);
-    VFD_updata(const_cast<char *>("L"), true);
-    delay(2000);
-    
-    //部分字符推入/推出
-    for (size_t i = 1; i < 7; i++)
-        VFD_WriteWater(i, icon_data[2]);
-    VFD_updata(1, 6, 6, const_cast<char *>("R"));
-    for (size_t i = 1; i < 7; i++)
-        VFD_WriteWater(i, icon_data[4]);
-    VFD_updata(1, 6, 6, const_cast<char *>("R"));
-    delay(2000);
-    
-    //全部推出
-    VFD_WriteWater(7, icon_data[4]);
-    VFD_updata(const_cast<char *>("L"), true);
-    for (size_t i = 0; i < 8; i++)
-        VFD_WriteWater(i, icon_data[4]);
-    VFD_updata(const_cast<char *>("L"), false);
-    delay(2000);
-}
-
-void setup()
-{
-#ifdef SRAND
-    typedef std::chrono::high_resolution_clock Clock;
-    auto t1 = Clock::now(); // 计时开始
-#endif
-
     String tmps;
     Serial.begin(9600);
     Preferences prefs;
@@ -338,20 +341,25 @@ void setup()
 
     // test();
 
+    // 初始化LED灯显示
+    pinMode(12, OUTPUT);   // 开启引脚输出模式  LED D4
+    digitalWrite(12, LOW); // HIGH输出高电平，LOW就是低电平
+    pinMode(13, OUTPUT);   // 开启引脚输出模式  LED D5
+    digitalWrite(13, LOW); // HIGH输出高电平，LOW就是低电平
+    initTimerInterrupt();   // 初始化定时器中断
+
 #ifdef DS3231
     DS3231M_init(); // 初始化 DS3231时钟
 #endif
 #ifdef TTF_VDF
-#ifdef SRAND
-    auto t2 = Clock::now(); // 计时结束
-    unsigned seed;          // 随机数种子
-    seed = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
-    srand(seed);
-#endif
+
     for (int i = 0; i < 10; i++) // 加载字体
     {
 #ifdef SRAND
-        if (!(rand() % 3) && SRAND_onff) // 获取随机数(限定 0 or 1)
+    uint32_t randomValue = esp_random();
+    int randomNumber0To9 = randomValue % 10; // 生成0到9之间的随机数
+
+        if (!(randomNumber0To9 % 3) && SRAND_onff) // 获取随机数(限定 0 or 1)
         {
             if (i_ttfb == 1)
                 load_fonts(i, Plop_data[i]);
@@ -411,16 +419,14 @@ void setup()
             }
         }
     }
-
-    pinMode(12, OUTPUT);   // 开启引脚输出模式  LED D4
-    digitalWrite(12, LOW); // HIGH输出高电平，LOW就是低电平
-
+    
     if (!wifi_ap)
     {
-        configTime(8 * 3600, 0, NTP_SERVER1, NTP_SERVER2, NTP_SERVER3); //, NTP_SERVER4);
+        recordwifiSyncSuccess(true);  // 记录WIFI连接成功
 
+        configTime(8 * 3600, 0, NTP_SERVER1, NTP_SERVER2, NTP_SERVER3); // 配置时间服务器
         Serial.println("while_NTP");
-        while_NTP();
+        while_NTP(); 
 
         //  显示WIFI IP地址
         if (ipadd_onff)
@@ -474,14 +480,14 @@ void setup()
     Serial.println("setup_OK");
 }
 
-void loop()
+void loop() // 主循环
 {
-    static uint8_t tm_secs;
-    static uint8_t tm_minute;
-    static uint8_t tm_hour;
+    static uint8_t tm_secs; 
+    static uint8_t tm_minute; 
+    static uint8_t tm_hour;  
 
     struct tm timeinfo; // ESP时钟
-
+    
     if (wifi_ap || !getLocalTime(&timeinfo))
     {
 
@@ -497,9 +503,6 @@ void loop()
             print_DS3231_Time(tm_Toggle);
 #endif
 
-            digitalWrite(12, HIGH);
-            delay(refresh);
-            digitalWrite(12, LOW);
 #ifdef WEBServer
             WEB_handle();
 #endif
@@ -515,12 +518,12 @@ void loop()
         {
             if (tm_minute != timeinfo.tm_min) // 每分钟整执行
             {
-                if (tm_hour != timeinfo.tm_min) // 每小时整执行
+                if (tm_hour != timeinfo.tm_hour) // 每小时整执行
                 {
 #ifdef DS3231
                     adjust_DS3231M(); // 同步系统时间到M3231M
 #endif
-                    tm_hour = timeinfo.tm_min;
+                    tm_hour = timeinfo.tm_hour;
 #ifdef TTF_VDF
                     set_vfmtm(timeinfo.tm_hour, 0);
 #endif

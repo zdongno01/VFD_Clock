@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "stdint.h"
+#include <algorithm>
 
 uint8_t din = 3;              // DA SDI SPI数据输入
 uint8_t clk = 2;              // CK CLK SPI时钟
@@ -9,6 +10,9 @@ uint8_t en = 8;               // EN VFD模组电源部分使能，EN 高电平�
 bool inverse = true;          // 显示倒转  真”（ true ）、“假”（ false ）
 unsigned char vfd_data[8][6]; // 当前屏幕内容
 unsigned char ww_data[8][7];  // 屏幕待更新内容
+bool update_flag = false;     // 更新标识
+
+int random_array[35]; // 生成一个0-34的随机数列
 
 void spi_write_data(unsigned char w_data) // 内部使用,传输数据
 {
@@ -75,17 +79,32 @@ void VFD_WriteStr(unsigned char x, char *str)
     digitalWrite(cs, HIGH); // 停止传输
     VFD_show();
 }
-void VFD_WriteStr(unsigned char x, char str)
+// void VFD_WriteStr(unsigned char x, char str)
+// {
+//     digitalWrite(cs, LOW);    // 开始传输
+//     spi_write_data(0x20 + x); // 地址寄存器起始位置
+//     while (str)
+//     {
+//         spi_write_data(str); // ascii与对应字符表转换
+//         str++;
+//     }
+//     digitalWrite(cs, HIGH); // 停止传输
+//     VFD_show();
+// }
+
+// 定义静态常量数组
+static const int REVERSE_INDEX_8[8]{7, 6, 5, 4, 3, 2, 1, 0};
+static const int REVERSE_INDEX_5[5]{4, 3, 2, 1, 0};
+// 位反转函数
+unsigned char reverseBits(unsigned char byte)
 {
-    digitalWrite(cs, LOW);    // 开始传输
-    spi_write_data(0x20 + x); // 地址寄存器起始位置
-    while (str)
-    {
-        spi_write_data(str); // ascii与对应字符表转换
-        str++;
-    }
-    digitalWrite(cs, HIGH); // 停止传输
-    VFD_show();
+    byte = ((byte & 0x04) << 2) | ((byte & 0x10) >> 2);
+    byte = ((byte & 0x02) << 4) | ((byte & 0x20) >> 4);
+    byte = ((byte & 0x01) << 6) | ((byte & 0x40) >> 6);
+    // byte = ((byte & 0x55) << 1) | ((byte & 0xAA) >> 1);
+    // byte = ((byte & 0x33) << 2) | ((byte & 0xCC) >> 2);
+    // byte = ((byte & 0x0F) << 4) | ((byte & 0xF0) >> 4);
+    return byte;
 }
 /******************************
   在指定位置打印自定义字符
@@ -101,6 +120,10 @@ void VFD_WriteUserFont(size_t x, size_t y, unsigned char *s)
 
     if (inverse)
     {
+        // x_data = REVERSE_INDEX_8[x];
+        // y_data = REVERSE_INDEX_8[y];
+        // for (i = 0; i < 5; i++)
+        //     s_data[REVERSE_INDEX_5[i]] = reverseBits(s[i]);
         int a[8]{7, 6, 5, 4, 3, 2, 1, 0};
         int b[5]{4, 3, 2, 1, 0};
         x_data = a[x];
@@ -169,6 +192,12 @@ void VFD_init(bool inv) // VFD屏幕初始化 inv:屏幕方向
     delayMicroseconds(5);
 
     inverse = inv;
+
+    // 随机数列初始值填充
+    for (size_t i = 0; i <= 34; i++) // 0-34
+    {
+        random_array[i] = i;
+    }
 }
 void VFD_set_bright(unsigned char brig) // 设置亮度
 {
@@ -322,6 +351,18 @@ void VFD_updata_Z(int low) // Z: 无特效直接更新指定位置
     }
     VFD_WriteUserFont(low, low, vfd_data[low]);
 }
+void updateVfdData(int randomValue, size_t i, unsigned char vfd_data[8][6], unsigned char ww_data[8][7])
+{
+    int col = (randomValue < 7) ? 0 : (randomValue < 14) ? 1
+                                  : (randomValue < 21)   ? 2
+                                  : (randomValue < 28)   ? 3
+                                                         : 4;
+    int bitPos = randomValue % 7;
+    unsigned char mask = 0xFF ^ (1 << bitPos);
+    unsigned char bit = 1 << bitPos;
+
+    vfd_data[i][col] = (vfd_data[i][col] & mask) | (ww_data[i][col] & bit);
+}
 /******************************
   从待更新数据(ww_data)中取出数据更新到显示区
 
@@ -332,6 +373,7 @@ void VFD_updata(char *dire, bool x) // U: 向上进入  D:向下进入 L:向左 
 {
     size_t low = 10;
     size_t high;
+    unsigned char vfd_data_tmp[8][6]; // 当前屏幕内容tmp
 
     if (dire == "L" | dire == "R")
     {
@@ -381,8 +423,7 @@ void VFD_updata(char *dire, bool x) // U: 向上进入  D:向下进入 L:向左 
         }
         return;
     }
-
-    if (dire == "U" | dire == "D")
+    else if (dire == "U" | dire == "D")
     {
         for (size_t il = 0; il < 8; il++) // il 垂直7列
         {
@@ -425,49 +466,65 @@ void VFD_updata(char *dire, bool x) // U: 向上进入  D:向下进入 L:向左 
                     VFD_WriteUserFont(i, i, vfd_data[i]);
                 }
             }
-
             delay(30);
         }
         return;
     }
-
-    if (dire == "A" | dire == "O")
+    else if (dire == "O") // 逐字节更新
     {
+        std::random_shuffle(random_array, random_array + 34); // 随机打乱数组  
+        for (size_t is = 0; is <= 34; is++) 
+        {
+            // 将vfd_data数据写入到vfd_data_tmp中
+            for (size_t mi = 0; mi < 8; mi++)
+            {
+                for (size_t ni = 0; ni < 6; ni++)
+                {
+                    vfd_data_tmp[mi][ni] = vfd_data[mi][ni];
+                }
+            }
+
+            for (size_t i = 0; i < 8; i++) // i: 显示位
+            {
+                if (ww_data[i][6] == 0xff) // 5: 更新标识
+                {
+                    updateVfdData(random_array[is], i, vfd_data, ww_data);
+                }
+            }
+            // 对比vfd_data_tmp与vfd_data是否有差异,如果有差异:(更新vfd_data,全部更新后暂停)
+            update_flag = false;
+            for (size_t mi = 0; mi < 8; mi++)
+            {
+                for (size_t ni = 0; ni < 6; ni++)
+                {
+                    if (vfd_data_tmp[mi][ni] != vfd_data[mi][ni])
+                    {
+                        VFD_WriteUserFont(mi, mi, vfd_data[mi]);
+                        vfd_data_tmp[mi][ni] = vfd_data[mi][ni];
+                        update_flag = true;
+                        break;
+                    }
+                }
+            }
+            if (update_flag)
+            {
+                delay(20);
+            }
+        }
         for (size_t i = 0; i < 8; i++) // i: 显示位
         {
             if (ww_data[i][6] == 0xff) // 5: 更新标识
             {
-                for (size_t mi = 0; mi < 5; mi++) // mi: 列 5
-                {
-                    if (dire == "A")
-                        vfd_data[i][mi] = vfd_data[i][mi] & ww_data[i][mi];
-                    else
-                        vfd_data[i][mi] = vfd_data[i][mi] | ww_data[i][mi];
-                }
-                ww_data[i][6] = 0x01;
-                VFD_WriteUserFont(i, i, vfd_data[i]);
+                ww_data[i][6] == 0x00;
             }
         }
-        delay(150);
-
-        for (size_t i = 0; i < 8; i++) // i: 显示位
+    }
+    // 无特效直接更新指定位置
+    else
+        for (size_t i = 0; i < 8; i++)
         {
-            if (ww_data[i][6] == 0x01) // 5: 更新标识
-            {
-                for (size_t mi = 0; mi < 5; mi++) // mi: 列 5
-                {
-                    vfd_data[i][mi] = ww_data[i][mi];
-                }
-                ww_data[i][6] = 0x00;
-                VFD_WriteUserFont(i, i, vfd_data[i]);
-            }
+            VFD_updata_Z(i);
         }
-    }
-    // dire = "Z" OR **
-    for (size_t i = 0; i < 8; i++)
-    {
-        VFD_updata_Z(i);
-    }
     return;
 }
 
