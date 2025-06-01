@@ -49,6 +49,13 @@ String generateFormGroup(String labelText, String inputHtml)
            "    </div>\n";
 }
 
+String generateFormGroup(String labelText1, String labelText2, String labelText3, String labelText4)
+{
+    return "<div style=\"flex: 1;\">\
+        <label>" + labelText1 + "</label>\
+        <input type='text' id='"  + labelText2 +  "' value='" + labelText4 + "' onchange='"  + labelText3 +  "'>\
+    </div>";
+}
 // 通用函数，用于生成选择框
 String generateSelect(String id, String value, String onChange, String options)
 {
@@ -214,6 +221,9 @@ void handelRoot() // WEB页面初始化
     html += "        <div style=\"flex: 1;\">\n";
     html += "            <label>时间间隔</label>\n";
     html += generateSelect("Tick", String(ws_Tick), "tm_Tick", generateTickTockOptions(ws_Tick));
+    html += "        </div>\n";
+    html += "        <div style=\"flex: 1;\">\n";
+    html += "            <label>　</label>\n";
     html += generateSelect("Tock", String(ws_Tock), "tm_Tock", generateTickTockOptions(ws_Tock));
     html += "        </div>\n";
     html += "    </div>\n";
@@ -222,27 +232,27 @@ void handelRoot() // WEB页面初始化
     html += "        <div style=\"flex: 1;\">\n";
     html += "            <label>时间字体</label>\n";
     html += generateSelect("ttfa", String(ws_ttfa), "tm_ttfa", generateFontOptions(ws_ttfa));
+    html += "        </div>\n";
+    html += "        <div style=\"flex: 1;\">\n";
+    html += "            <label>　</label>\n";
     html += generateSelect("ttfb", String(ws_ttfb), "tm_ttfb", generateFontOptions(ws_ttfb));
     html += "        </div>\n";
     html += "    </div>\n";
-    html += "    <div class=\"form-group\" style=\"display: flex; gap: 10px;\">\n";
-    html += "        <div style=\"flex: 1;\">\n";
-    html += generateFormGroup("WIFI1", "        <input type='text' id='wiss1' value='" + ws_wifi_ssid1 + "' onchange='wifi_ssid1()'>\n");
-    html += generateFormGroup("Pass1", "        <input type='text' id='wpa1' value='" + ws_wifi_pass1 + "' onchange='wifi_pass1()'>\n");
-    html += "        </div>\n";
+    html += "    <div class=\"form-group\" style=\"display: flex; gap: 10px;\">";
+    html += generateFormGroup("WIFI1", "wiss1", "wifi_ssid1()", ws_wifi_ssid1);
+    html += generateFormGroup("Pass1", "wpa1",  "wifi_pass1()", ws_wifi_pass1);
     html += "    </div>\n";
-    html += "    <div class=\"form-group\" style=\"display: flex; gap: 10px;\">\n";
-    html += "        <div style=\"flex: 1;\">\n";
-    html += generateFormGroup("WIFI2", "        <input type='text' id='wiss2' value='" + ws_wifi_ssid2 + "' onchange='wifi_ssid2()'>\n");
-    html += generateFormGroup("Pass2", "        <input type='text' id='wpa2' value='" + ws_wifi_pass2 + "' onchange='wifi_pass2()'>\n");
-    html += "        </div>\n";
+
+    html += "    <div class=\"form-group\" style=\"display: flex; gap: 10px;\">";
+    html += generateFormGroup("WIFI2", "wiss2", "wifi_ssid2()", ws_wifi_ssid2);
+    html += generateFormGroup("Pass2", "wpa2",  "wifi_pass2()", ws_wifi_pass2);
     html += "    </div>\n";
-    html += "    <div class=\"form-group\" style=\"display: flex; gap: 10px;\">\n";
-    html += "        <div style=\"flex: 1;\">\n";
-    html += generateFormGroup("WIFI3", "        <input type='text' id='wiss3' value='" + ws_wifi_ssid3 + "' onchange='wifi_ssid3()'>\n");
-    html += generateFormGroup("Pass3", "        <input type='text' id='wpa3' value='" + ws_wifi_pass3 + "' onchange='wifi_pass3()'>\n");
-    html += "        </div>\n";
+    
+    html += "    <div class=\"form-group\" style=\"display: flex; gap: 10px;\">";
+    html += generateFormGroup("WIFI3", "wiss3", "wifi_ssid3()", ws_wifi_ssid3);
+    html += generateFormGroup("Pass3", "wpa3",  "wifi_pass3()", ws_wifi_pass3);
     html += "    </div>\n";
+
     html += "    <input type='button' value='重启ESP' onclick='restart()'>\n";
     html += "</body>\n";
     html += "</html>";

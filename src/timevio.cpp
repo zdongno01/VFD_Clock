@@ -7,10 +7,10 @@ static uint8_t secs;
 static uint8_t minute;
 static uint8_t hour;
 
-unsigned char TTF_data[12][5];  // 时钟字体缓存
+unsigned char TTF_data[12][5]; // 时钟字体缓存
 
 DS3231M_Class DS3231M;
-void set_vfmtm(int tm, unsigned char n)     //时间个十位拆分
+void set_vfmtm(int tm, unsigned char n) // 时间个十位拆分
 {
     int m, t, n1 = n + 1;
     if (tm >= 50)
@@ -103,27 +103,19 @@ void print_DS3231_Time(char *Toggle) // 显示DS3231时间
     //  VFD_WriteStr(0, output_buffer);
     if (secs != now.second()) // 每秒钟整执行
     {
-        if (Toggle != "ASCII")
+        if (minute != now.minute()) // 每分钟整执行
         {
-            if (minute != now.minute()) // 每分钟整执行
+            if (hour != now.hour()) // 每小时整执行
             {
-                if (hour != now.hour()) // 每小时整执行
-                {
-                    hour = now.hour();
-                    set_vfmtm(now.hour(), 0);
-                }
-                minute = now.minute();
-                tm_separate(2, 11);
-                set_vfmtm(now.minute(), 3);
+                hour = now.hour();
+                set_vfmtm(now.hour(), 0);
             }
-            set_vfmtm(now.second(), 6);
-            VFD_updata(Toggle, true);
+            minute = now.minute();
+            tm_separate(2, 11);
+            set_vfmtm(now.minute(), 3);
         }
-        else
-        {
-            sprintf(output_buffer, "%02d:%02d:%02d", now.hour(), now.minute(), now.second());
-            VFD_WriteStr(0, output_buffer);
-        }
+        set_vfmtm(now.second(), 6);
+        VFD_updata(Toggle, true);
 
         secs = now.second(); // Set the counter variable
         tm_separate(5, 11);  //:
@@ -146,8 +138,8 @@ void Reset_time(char *Toggle)
 
 void adjust_DS3231M()
 {
-    struct tm timeinfo; 
-    if (!getLocalTime(&timeinfo))   
+    struct tm timeinfo;
+    if (!getLocalTime(&timeinfo))
     {
         return;
     }

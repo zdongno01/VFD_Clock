@@ -9,18 +9,11 @@
 #include "FFat.h"
 #include <Preferences.h>
 
-// WIFI_AP
-IPAddress apIP(192, 168, 4, 1); // 设置AP的IP地址
 
-// #define ASCII_VDF //系统字体
-#define TTF_VDF   // 自定义字体+特效
 #define DS3231    // 启用DS3231时钟
 #define SRAND     // 随机字体
-#define WEBServer // WEB控制
 
-#ifdef WEBServer
 #include "web_server.h"
-#endif
 
 // VFD显示屏
 #include "vfd08.h"
@@ -34,6 +27,9 @@ IPAddress apIP(192, 168, 4, 1); // 设置AP的IP地址
 using namespace std;
 using namespace chrono;
 #endif
+
+// WIFI_AP
+IPAddress apIP(192, 168, 4, 1); // 设置AP的IP地址
 
 const uint8_t SPRINTF_BUFFER_SIZE{32};   ///< Buffer size for sprintf()
 char output_buffer[SPRINTF_BUFFER_SIZE]; ///< Temporary buffer for sprintf()
@@ -63,8 +59,8 @@ int Tock = 5;              // 时间间隔
 char *no_Toggle;           // 开机特效
 char *tm_Toggle;           // 时间切换特效
 String s_hostname = "ZD_VFD";
-String s_wifi_ssid1 = "";           // WIFI_SSID1
-String s_wifi_pass1 = "";           // WIFI_PASS1
+String s_wifi_ssid1 = "zhhome";           // WIFI_SSID1
+String s_wifi_pass1 = "zhang888";           // WIFI_PASS1
 String s_wifi_ssid2;                // WIFI_SSID2
 String s_wifi_pass2;                // WIFI_PASS2
 String s_wifi_ssid3;                // WIFI_SSID3
@@ -98,14 +94,8 @@ void while_Wifi(const char *ssid, const char *pass, int wi) // 连接WIFI
     // print_DS3231_Time(const_cast<char *>("Z"));
     for (int i = 0; i < 50; i++)
     {
-#ifdef ASCII_VDF
-        print_DS3231_Time("ASCII");
-#endif
-#ifdef TTF_VDF
         // print_DS3231_Time("M");
         print_DS3231_Time(tm_Toggle);
-
-#endif
         delay(refresh);
     }
 #else
@@ -125,25 +115,19 @@ void while_Wifi(const char *ssid, const char *pass, int wi) // 连接WIFI
 
     return;
 }
-void while_NTP() // 同步NTP时间
+void while_NTP() // 等待同步NTP
 {
 
     // ESP时钟未准备好, 使用DS3231时钟
     struct tm timeinfo; // ESP时钟
     bool clvf = true;
 
-    // while (!getLocalTime(&timeinfo))
-    // {
+     while (!getLocalTime(&timeinfo))
+     {
 #ifdef DS3231
-        for (int i = 0; i < 50; i++)
+        for (int i = 0; i < 20; i++)
         {
-
-#ifdef ASCII_VDF
-            print_DS3231_Time("ASCII");
-#endif
-#ifdef TTF_VDF
             print_DS3231_Time(tm_Toggle);
-#endif
             delay(refresh);
         }
 #else
@@ -167,7 +151,7 @@ void while_NTP() // 同步NTP时间
         }
 
 #endif
-    // };
+     };
 
 #ifdef DS3231
         adjust_DS3231M(); // 同步系统时间到M3231M
@@ -301,7 +285,6 @@ void setup() // 初始化
     Preferences prefs;
 
     Serial.println("get_Config");
-
     prefs.begin("VFD_Config"); // 打开命名空间
 
     brig = prefs.getUChar("brig", 0x55);                  // 屏幕亮度
@@ -315,8 +298,8 @@ void setup() // 初始化
     Tock = prefs.getInt("Tock", Tock);                    // 时间间隔 Tock
     s_hostname = prefs.getString("hostname", s_hostname); // 主机名
 
-    s_wifi_ssid1 = prefs.getString("wifi_ssid1", ssid);         // WIFI_SSID1
-    s_wifi_pass1 = prefs.getString("wifi_pass1", password);     // WIFI_PASS1
+    s_wifi_ssid1 = prefs.getString("wifi_ssid1", s_wifi_ssid1);         // WIFI_SSID1
+    s_wifi_pass1 = prefs.getString("wifi_pass1", s_wifi_pass1);     // WIFI_PASS1
     s_wifi_ssid2 = prefs.getString("wifi_ssid2", s_wifi_ssid2); // WIFI_SSID2
     s_wifi_pass2 = prefs.getString("wifi_pass2", s_wifi_pass2); // WIFI_PASS2
     s_wifi_ssid3 = prefs.getString("wifi_ssid3", s_wifi_ssid3); // WIFI_SSID3
@@ -351,7 +334,6 @@ void setup() // 初始化
 #ifdef DS3231
     DS3231M_init(); // 初始化 DS3231时钟
 #endif
-#ifdef TTF_VDF
 
     for (int i = 0; i < 10; i++) // 加载字体
     {
@@ -398,7 +380,6 @@ void setup() // 初始化
     load_fonts(10, icon_data[Tick]);
     load_fonts(11, icon_data[Tock]);
 
-#endif
 #ifdef DS3231
     DS3231M_load(no_Toggle); // 载入时钟
 #endif
@@ -426,7 +407,6 @@ void setup() // 初始化
 
         configTime(8 * 3600, 0, NTP_SERVER1, NTP_SERVER2, NTP_SERVER3); // 配置时间服务器
         Serial.println("while_NTP");
-        while_NTP(); 
 
         //  显示WIFI IP地址
         if (ipadd_onff)
@@ -463,18 +443,19 @@ void setup() // 初始化
             }
             delay(3000);
         }
+        
+        Reset_time(tm_Toggle); // 返回时间显示
+        while_NTP(); 
     }
 
-#ifdef WEBServer
     WEB_server_begin();
-#endif
 
     // VFD_cmd(0xE9); // 全亮测试 屏幕
     // delay(1000);
 
-    Reset_time(tm_Toggle); // 返回时间显示
-    VFD_WriteWater(2, icon_data[4]);
-    VFD_WriteWater(5, icon_data[4]);
+     Reset_time(tm_Toggle); // 返回时间显示
+     VFD_WriteWater(2, icon_data[4]);
+     VFD_WriteWater(5, icon_data[4]);
 
     // ESP.restart(); // 重启系统
     Serial.println("setup_OK");
@@ -488,24 +469,15 @@ void loop() // 主循环
 
     struct tm timeinfo; // ESP时钟
     
-    if (wifi_ap || !getLocalTime(&timeinfo))
+    if (wifi_ap || !getLocalTime(&timeinfo)) // 未连接WIFI或ESP时钟失效
     {
 
 #ifdef DS3231
         // ESP时钟失效, 使用DS3231时钟
         for (int i = 0; i < 100; i++)
         {
-
-#ifdef ASCII_VDF
-            print_DS3231_Time("ASCII");
-#endif
-#ifdef TTF_VDF
             print_DS3231_Time(tm_Toggle);
-#endif
-
-#ifdef WEBServer
             WEB_handle();
-#endif
         }
 #else
         while_NTP();
@@ -524,26 +496,15 @@ void loop() // 主循环
                     adjust_DS3231M(); // 同步系统时间到M3231M
 #endif
                     tm_hour = timeinfo.tm_hour;
-#ifdef TTF_VDF
                     set_vfmtm(timeinfo.tm_hour, 0);
-#endif
                 }
                 tm_minute = timeinfo.tm_min;
                 tm_separate(2, 11);
-#ifdef TTF_VDF
                 set_vfmtm(timeinfo.tm_min, 3);
-#endif
             }
-#ifdef TTF_VDF
             set_vfmtm(timeinfo.tm_sec, 6);
             tm_separate(5, 11);
             VFD_updata(tm_Toggle, true);
-#endif
-
-#ifdef ASCII_VDF
-            sprintf(output_buffer, "%02d:%02d:%02d", timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
-            VFD_WriteStr(0, output_buffer);
-#endif
 
             tm_secs = timeinfo.tm_sec; // Set the counter variable
             delay(300);
@@ -555,8 +516,6 @@ void loop() // 主循环
         }
     }
 
-#ifdef WEBServer
     WEB_handle();
-#endif
     delay(refresh);
 }

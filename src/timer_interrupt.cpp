@@ -1,12 +1,13 @@
 #include "Arduino.h"
 #include "timer_interrupt.h"
+#include <time.h> 
 
 // 定时器句柄
 hw_timer_t *timer = NULL;
 
 bool ledSuccess = false;
 
-bool apSyncSuccess = false;  // AP同步状态
+bool apSyncSuccess = false;   // AP同步状态
 bool wifiSyncSuccess = false; // NTP同步状态
 // 新增变量用于呼吸灯控制
 static int brightness = 0; // 亮度值
@@ -28,6 +29,7 @@ void initTimerInterrupt()
 // 定时器中断服务函数
 void IRAM_ATTR onTimer()
 {
+    struct tm timeinfo; // ESP时钟结构体
     // 打开 LED 灯 D12 和 D13
     if (apSyncSuccess)
     {
@@ -81,9 +83,11 @@ void recordAPSyncSuccess(bool success)
 {
     apSyncSuccess = success;
 }
-//停止定时器中断
-void stopTimerInterrupt() {
-    if (timer != NULL) {
+// 停止定时器中断
+void stopTimerInterrupt()
+{
+    if (timer != NULL)
+    {
         analogWrite(12, 0);
         analogWrite(13, 0);
         timerEnd(timer); // 停止定时器
